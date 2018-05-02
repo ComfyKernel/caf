@@ -7,6 +7,7 @@
 namespace caf {
   class loader {
   public:
+    
   };
 }
 

@@ -1,2 +1,1 @@
-#include <caf/types.hpp>
-#include <caf/loader.hpp>
+#include <caf/caf.hpp>

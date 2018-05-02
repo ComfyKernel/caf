@@ -2,6 +2,7 @@
 #define CAF_TYPES_HPP
 
 #include <cstdint>
+#include <vector>
 #include <string>
 
 namespace caf {
@@ -45,6 +46,8 @@ namespace caf {
     uint32_t revision;
     uint32_t ptr_lumpitem;
     std::string root;
+
+    std::vector<lumpitem> items;
   };
 }
 
