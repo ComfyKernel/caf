@@ -22,7 +22,7 @@ namespace caf {
     bool type3 : 1;
     bool type2 : 1;
     bool type1 : 1;
-  }
+  };
   
   struct lumpitem {
     union {
