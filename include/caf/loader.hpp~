@@ -1,0 +1,10 @@
+#ifndef CAF_LOADER_HPP
+#define CAF_LOADER_HPP
+
+namespace caf {
+  class loader {
+  public:
+  }
+}
+
+#endif
