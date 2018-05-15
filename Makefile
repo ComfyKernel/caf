@@ -7,3 +7,4 @@ export INCLUDE
 
 all:
 	$(MAKE) -C libcaf/
+	$(MAKE) -C caftool/
