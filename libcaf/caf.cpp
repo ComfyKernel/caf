@@ -85,12 +85,19 @@ bool caf::load(std::string file) {
     l.s_path = readString();
     l.s_type = readString();
 
-    lumps.push_back(l);
     if((l.b_flag_a>>7) != 1) {
       itemExists = false;
     }
 
+    fi.seekg(ptr_lump, fi.beg);
+
+    char* buf = (char*)std::malloc(l.s_lump_size);
+    fi.read(buf, l.s_lump_size);
+    l.c_lump_data = buf;
+
     fi.seekg(ptr_item, fi.beg);
+
+    lumps.push_back(l);
   }
 
   fi.close();
@@ -112,6 +119,17 @@ void caf::dumpTree() {
     std::cout<<"|        |- Revision : "<<l.l_revision<<"'\n";
     std::cout<<"|        |- Data -|- Pointer : "<<(void*)l.c_lump_data<<"\n";
     std::cout<<"|                 |- Size    : "<<l.s_lump_size<<"\n";
+    std::string prefix="text/";
+    if(!l.s_type.compare(0, prefix.size(), prefix) && l.c_lump_data != nullptr) {
+      unsigned int i = 0;
+      char* c = l.c_lump_data;
+      while(i < l.s_lump_size) {
+        std::cout<<(*c);
+        i++;
+        c++;
+      }
+      std::cout<<"\n";
+    }
   }
 
   std::cout<<"|________________________________________\n";
