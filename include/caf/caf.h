@@ -27,7 +27,12 @@ public:
 
   std::vector<lump> lumps;
 
-  bool load(std::string file);
-  void dump_lump(std::string lump);
-  void dump_tree();
+  bool load(const std::string& file);
+
+  lump& find_lump(const std::string& lump);
+
+  void dump_lump(const lump&) const;
+  void dump_tree() const;
+
+  void show_lump(const lump&) const;
 };

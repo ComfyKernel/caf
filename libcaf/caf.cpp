@@ -5,7 +5,7 @@
 #include <fstream>
 #include <cstring>
 
-bool caf::load(std::string file) {
+bool caf::load(const std::string& file) {
   std::ifstream fi(file, std::ios::binary);
 
   if(!fi.is_open()) {
@@ -107,7 +107,7 @@ bool caf::load(std::string file) {
   return true;
 }
 
-void caf::dump_tree() {
+void caf::dump_tree() const {
   std::cout<<"_________________________________________\n";
   std::cout<<"| Dumping lump tree for CAF Root '"<<rootinfo.s_root<<"'\n";
   std::cout<<"|- CAF Version    : ["<<rootinfo.s_caf_major<<", "<<rootinfo.s_caf_minor<<"]\n";
@@ -139,20 +139,41 @@ void caf::dump_tree() {
   std::cout<<"|________________________________________\n";
 }
 
-void caf::dump_lump(std::string lump) {
-  std::cout<<"| Dumping info for lump : '"<<lump<<"'\n";
+void caf::dump_lump(const lump& l) const {
+  std::cout<<"| Dumping info for lump : '"<<l.s_path<<l.s_name<<"'\n";
 
-  for(const auto& l : lumps) {
-    if((l.s_path + l.s_name) == lump) {
-      std::cout<<"|- Name     : '"<<l.s_name<<"'\n";
-      std::cout<<"|- Path     : '"<<l.s_path<<"'\n";
-      std::cout<<"|- Type     : '"<<l.s_type<<"'\n";
-      std::cout<<"|- Revision : '"<<l.l_revision<<"'\n";
-      std::cout<<"|- Data -|- Pointer : '"<<(void*)l.c_lump_data<<"'\n";
-      std::cout<<"         |- Size    : '"<<l.s_lump_size<<"'\n";
-      return;
+  std::cout<<"|- Name     : '"<<l.s_name<<"'\n";
+  std::cout<<"|- Path     : '"<<l.s_path<<"'\n";
+  std::cout<<"|- Type     : '"<<l.s_type<<"'\n";
+  std::cout<<"|- Revision : '"<<l.l_revision<<"'\n";
+  std::cout<<"|- Data -|- Pointer : '"<<(void*)l.c_lump_data<<"'\n";
+  std::cout<<"         |- Size    : '"<<l.s_lump_size<<"'\n";
+}
+
+lump _l_not_found;
+
+lump& caf::find_lump(const std::string& l) {
+  for(auto& li : lumps) {
+    if((li.s_path + li.s_name) == l) {
+      return li;
     }
   }
 
-  std::cout<<"Couldn't find lump '"<<lump<<"'\n";
+  return _l_not_found;
+}
+
+void caf::show_lump(const lump& l) const {
+  if(l.s_type.find("/text") != std::string::npos) {
+    unsigned int i = 0;
+    char* c = l.c_lump_data;
+    while(i < l.s_lump_size) {
+      std::cout<<(*c);
+      i++;
+      c++;
+    }
+    std::cout<<"\n";
+    return;
+  }
+
+  std::cout<<"Cannot show lump, type '"<<l.s_type<<"' Unsupported\n";
 }
