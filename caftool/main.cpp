@@ -1,17 +1,53 @@
 #include <iostream>
+#include <cstring>
+#include <utility>
+
 #include <caf/caf.h>
+#include <tinyxml.h>
+
+bool cmd_tree(int, char**);
+bool cmd_lump(int, char**);
+
+typedef bool (*f_command)(int, char**);
+typedef std::pair<f_command, const char*> p_command;
+
+p_command commands[] = {
+  p_command(cmd_tree, "tree"),
+  p_command(cmd_lump, "lump")
+};
 
 int main(int argc, char *argv[]) {
-  if(argc < 2) {
-    std::cout<<"Please provide a filename for the reader\n";
+  if(argc < 3) {
+    std::cout<<"Please provide a command / filename for the tool\n";
     return -1;
   }
 
-  caf c;
+  for(const auto& c : commands) {
+    if(strcmp(c.second, argv[2]) == 0) {
+      return !c.first(argc, argv);
+    }
+  }
 
-  c.load(argv[1]);
-
-  c.dumpTree();
+  std::cout<<"Command not found '"<<argv[2]<<"'\n";
 
   return 0;
+}
+
+bool cmd_tree(int argc, char *argv[]) {
+  caf c;
+  c.load(argv[1]);
+  c.dump_tree();
+  return true;
+}
+
+bool cmd_lump(int argc, char *argv[]) {
+  if(argc < 4) {
+    std::cout<<"Command 'lump' needs more arguments!\n";
+    return false;
+  }
+
+  caf c;
+  c.load(argv[1]);
+  c.dump_lump(std::string(argv[3]));
+  return true;
 }

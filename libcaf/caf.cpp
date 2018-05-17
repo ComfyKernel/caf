@@ -85,6 +85,9 @@ bool caf::load(std::string file) {
     l.s_path = readString();
     l.s_type = readString();
 
+    if(l.s_path.back() != '/')
+      l.s_path += '/';
+
     if((l.b_flag_a>>7) != 1) {
       itemExists = false;
     }
@@ -104,7 +107,7 @@ bool caf::load(std::string file) {
   return true;
 }
 
-void caf::dumpTree() {
+void caf::dump_tree() {
   std::cout<<"_________________________________________\n";
   std::cout<<"| Dumping lump tree for CAF Root '"<<rootinfo.s_root<<"'\n";
   std::cout<<"|- CAF Version    : ["<<rootinfo.s_caf_major<<", "<<rootinfo.s_caf_minor<<"]\n";
@@ -113,13 +116,14 @@ void caf::dumpTree() {
 
   for(const auto& l : lumps) {
     std::cout<<"|______________________________________\n";
-    std::cout<<"|- Lump -|- name     : '"<<l.s_name<<"'\n";
+    std::cout<<"|- Lump -|- '"<<l.s_path<<l.s_name<<"'";
+    std::cout<<"|        |- Name     : '"<<l.s_name<<"'\n";
     std::cout<<"|        |- Path     : '"<<l.s_path<<"'\n";
     std::cout<<"|        |- Type     : '"<<l.s_type<<"'\n";
     std::cout<<"|        |- Revision : "<<l.l_revision<<"'\n";
     std::cout<<"|        |- Data -|- Pointer : "<<(void*)l.c_lump_data<<"\n";
     std::cout<<"|                 |- Size    : "<<l.s_lump_size<<"\n";
-    std::string prefix="text/";
+/*    std::string prefix="text/";
     if(!l.s_type.compare(0, prefix.size(), prefix) && l.c_lump_data != nullptr) {
       unsigned int i = 0;
       char* c = l.c_lump_data;
@@ -129,8 +133,26 @@ void caf::dumpTree() {
         c++;
       }
       std::cout<<"\n";
-    }
+    }*/
   }
 
   std::cout<<"|________________________________________\n";
+}
+
+void caf::dump_lump(std::string lump) {
+  std::cout<<"| Dumping info for lump : '"<<lump<<"'\n";
+
+  for(const auto& l : lumps) {
+    if((l.s_path + l.s_name) == lump) {
+      std::cout<<"|- Name     : '"<<l.s_name<<"'\n";
+      std::cout<<"|- Path     : '"<<l.s_path<<"'\n";
+      std::cout<<"|- Type     : '"<<l.s_type<<"'\n";
+      std::cout<<"|- Revision : '"<<l.l_revision<<"'\n";
+      std::cout<<"|- Data -|- Pointer : '"<<(void*)l.c_lump_data<<"'\n";
+      std::cout<<"         |- Size    : '"<<l.s_lump_size<<"'\n";
+      return;
+    }
+  }
+
+  std::cout<<"Couldn't find lump '"<<lump<<"'\n";
 }

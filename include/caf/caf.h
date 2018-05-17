@@ -28,5 +28,6 @@ public:
   std::vector<lump> lumps;
 
   bool load(std::string file);
-  void dumpTree();
+  void dump_lump(std::string lump);
+  void dump_tree();
 };
