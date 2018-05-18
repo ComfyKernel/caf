@@ -108,46 +108,38 @@ bool caf::load(const std::string& file) {
 }
 
 void caf::dump_tree() const {
-  std::cout<<"_________________________________________\n";
-  std::cout<<"| Dumping lump tree for CAF Root '"<<rootinfo.s_root<<"'\n";
-  std::cout<<"|- CAF Version    : ["<<rootinfo.s_caf_major<<", "<<rootinfo.s_caf_minor<<"]\n";
-  std::cout<<"|- Asset Revision : "<<rootinfo.l_revision<<"\n";
-  std::cout<<"|- Asset path     : '"<<rootinfo.s_root<<"'\n";
+  std::cout<<"┌────────────────────────────────────────────────────\n";
+  std::cout<<"│\n";
+  std::cout<<"├╴ CAF Version    : ["<<rootinfo.s_caf_major<<", "<<rootinfo.s_caf_minor<<"]\n";
+  std::cout<<"├╴ Asset Revision : "<<rootinfo.l_revision<<"\n";
+  std::cout<<"├╴ Asset path     : '"<<rootinfo.s_root<<"'\n";
+  std::cout<<"│\n";
 
   for(const auto& l : lumps) {
-    std::cout<<"|______________________________________\n";
-    std::cout<<"|- Lump -|- '"<<l.s_path<<l.s_name<<"'";
-    std::cout<<"|        |- Name     : '"<<l.s_name<<"'\n";
-    std::cout<<"|        |- Path     : '"<<l.s_path<<"'\n";
-    std::cout<<"|        |- Type     : '"<<l.s_type<<"'\n";
-    std::cout<<"|        |- Revision : "<<l.l_revision<<"'\n";
-    std::cout<<"|        |- Data -|- Pointer : "<<(void*)l.c_lump_data<<"\n";
-    std::cout<<"|                 |- Size    : "<<l.s_lump_size<<"\n";
-/*    std::string prefix="text/";
-    if(!l.s_type.compare(0, prefix.size(), prefix) && l.c_lump_data != nullptr) {
-      unsigned int i = 0;
-      char* c = l.c_lump_data;
-      while(i < l.s_lump_size) {
-        std::cout<<(*c);
-        i++;
-        c++;
-      }
-      std::cout<<"\n";
-    }*/
+    std::cout<<"├╼ Lump ╾┬╴ '"<<l.s_path<<l.s_name<<"'\n";
+    std::cout<<"│        ├╴ Name     : '"<<l.s_name<<"'\n";
+    std::cout<<"│        ├╴ Path     : '"<<l.s_path<<"'\n";
+    std::cout<<"│        ├╴ Type     : '"<<l.s_type<<"'\n";
+    std::cout<<"│        ├╴ Revision : "<<l.l_revision<<"'\n";
+    std::cout<<"│        └╼ Data ╾┬╴ Pointer : "<<(void*)l.c_lump_data<<"\n";
+    std::cout<<"│                 └╴ Size    : "<<l.s_lump_size<<"\n";
+    std::cout<<"│\n";
   }
 
-  std::cout<<"|________________________________________\n";
+  std::cout<<"└────────────────────────────────────────────────────\n";
 }
 
 void caf::dump_lump(const lump& l) const {
-  std::cout<<"| Dumping info for lump : '"<<l.s_path<<l.s_name<<"'\n";
-
-  std::cout<<"|- Name     : '"<<l.s_name<<"'\n";
-  std::cout<<"|- Path     : '"<<l.s_path<<"'\n";
-  std::cout<<"|- Type     : '"<<l.s_type<<"'\n";
-  std::cout<<"|- Revision : '"<<l.l_revision<<"'\n";
-  std::cout<<"|- Data -|- Pointer : '"<<(void*)l.c_lump_data<<"'\n";
-  std::cout<<"         |- Size    : '"<<l.s_lump_size<<"'\n";
+  std::cout<<"┌──────────────────────────────────────────────\n";
+  std::cout<<"│\n";
+  std::cout<<"├╴ Name     : '"<<l.s_name<<"'\n";
+  std::cout<<"├╴ Path     : '"<<l.s_path<<"'\n";
+  std::cout<<"├╴ Type     : '"<<l.s_type<<"'\n";
+  std::cout<<"├╴ Revision : '"<<l.l_revision<<"'\n";
+  std::cout<<"├╴ Data ╾┬╴ Pointer : '"<<(void*)l.c_lump_data<<"'\n";
+  std::cout<<"│        └╼ Size    : '"<<l.s_lump_size<<"'\n";
+  std::cout<<"│\n";
+  std::cout<<"└──────────────────────────────────────────────\n";
 }
 
 lump _l_not_found;
