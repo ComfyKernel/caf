@@ -2,7 +2,7 @@
 #include <cstring>
 #include <utility>
 
-#include <caf/caf.h>
+#include <caf/container.hpp>
 #include <tinyxml.h>
 
 bool cmd_tree(int, char**);
@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
 }
 
 bool cmd_tree(int argc, char *argv[]) {
-  caf c;
+  caf::container c;
   c.load(argv[1]);
   c.dump_tree();
   return true;
@@ -48,9 +48,9 @@ bool cmd_lump(int argc, char *argv[]) {
     return false;
   }
 
-  caf c;
+  caf::container c;
   c.load(argv[1]);
-  c.dump_lump(c.find_lump(argv[3]));
+  c.dump_item(c.getItem(argv[3]));
   return true;
 }
 
@@ -60,8 +60,8 @@ bool cmd_show(int argc, char *argv[]) {
     return false;
   }
 
-  caf c;
+  caf::container c;
   c.load(argv[1]);
-  c.show_lump(c.find_lump(argv[3]));
+  c.show_item(c.getItem(argv[3]));
   return true;
 }

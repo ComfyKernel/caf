@@ -1,7 +1,14 @@
 CC=g++
-CFLAGS=-std=c++11 -I$(INCLUDE)
+CFLAGS=-std=gnu++17 -I$(INCLUDE)
 OUT=libcaf.a
 
-all:
-	$(CC) -c $(shell find -type f -name "*.cpp") $(CFLAGS) -o $(BUILD)/$(OUT).o
-	ar -rvs $(BUILD)/$(OUT) $(BUILD)/$(OUT).o
+SOURCES := $(shell find -type f -name "*.cpp")
+BINS    := $(patsubst %.cpp,%.o, $(SOURCES))
+
+all: $(BUILD)/$(OUT)
+
+$(BUILD)/$(OUT): $(BINS)
+	ar -rvs $(BUILD)/$(OUT) $(BINS)
+
+%.o : %.cpp
+	$(CC) -c $< $(CFLAGS) -o $@
