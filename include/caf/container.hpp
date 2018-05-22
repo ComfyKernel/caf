@@ -39,7 +39,8 @@ namespace caf {
     unsigned addItem (const caf::lumpitem& lump);
     unsigned addItems(const std::vector<caf::lumpitem>& vlumps);
 
-    bool load(const std::string& file = "");
+    bool load (const std::string& file = "");
+    bool write(const std::string& file = "");
 
     void dump_tree() const;
     void dump_item(const caf::lumpitem& l) const;

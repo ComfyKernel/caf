@@ -159,6 +159,61 @@ bool caf::container::load(const std::string& fname) {
   return true;
 }
 
+template<typename T>
+void writeData(std::ofstream& stream, T data, uint64_t& ptr) {
+  T v = data;
+  stream.write((const char*)&v, sizeof(T));
+  ptr += sizeof(T);
+}
+
+void writeString(std::ofstream& stream, const std::string& data, uint64_t& ptr) {
+  stream.write(data.c_str(), data.length() + 1);
+  ptr += data.length() + 1;
+}
+
+bool caf::container::write(const std::string& file) {
+  std::ofstream fi(file, std::ios::binary);
+
+  if(!fi.is_open()) {
+    std::cout<<"[CAF] Could not open file '"<<file<<"' for writing!\n";
+    fi.close();
+    return false;
+  }
+
+  uint64_t ptr;
+
+  writeData<char>(fi, 'C', ptr);
+  writeData<char>(fi, 'A', ptr);
+  writeData<char>(fi, 'F', ptr);
+
+  writeData<uint16_t>(fi, version.major,           ptr);
+  writeData<uint16_t>(fi, version.minor,           ptr);
+  writeData<uint32_t>(fi, version.revision,        ptr);
+  writeData<uint64_t>(fi, ptr + root.length() + 9, ptr);
+  writeString(fi, root, ptr);
+
+  for(unsigned i = 0; i < items.size(); ++i) {
+    caf::lumpitem li = items[i];
+    if(i < items.size() - 1) {
+      li.flags.a |= 0b10000000;
+    }
+    writeData<uint8_t> (fi, li.flags.a,  ptr);
+    writeData<uint8_t> (fi, li.flags.b,  ptr);
+    writeData<uint64_t>(fi, li.size,     ptr);
+    writeData<uint32_t>(fi, li.revision, ptr);
+    uint64_t ptr_l = li.name.length() + li.path.length() + li.type.length() + 3;
+    writeData<uint64_t>(fi, ptr + ptr_l + 16,          ptr);
+    writeData<uint64_t>(fi, ptr + ptr_l + 8 + li.size, ptr);
+    writeString(fi, li.name, ptr);
+    writeString(fi, li.path, ptr);
+    writeString(fi, li.type, ptr);
+    fi.write(li.data, li.size);
+  }
+
+  fi.close();
+  return true;
+}
+
 void caf::container::dump_tree() const {
   std::cout<<"┌────────────────────────────────────────────────────\n";
   std::cout<<"│\n";
