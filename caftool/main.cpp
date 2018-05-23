@@ -8,6 +8,7 @@
 bool cmd_tree(int, char**);
 bool cmd_lump(int, char**);
 bool cmd_show(int, char**);
+bool cmd_copy(int, char**);
 
 typedef bool (*f_command)(int, char**);
 typedef std::pair<f_command, const char*> p_command;
@@ -15,7 +16,8 @@ typedef std::pair<f_command, const char*> p_command;
 p_command commands[] = {
   p_command(cmd_tree, "tree"),
   p_command(cmd_lump, "lump"),
-  p_command(cmd_show, "show")
+  p_command(cmd_show, "show"),
+  p_command(cmd_copy, "copy")
 };
 
 int main(int argc, char *argv[]) {
@@ -63,5 +65,17 @@ bool cmd_show(int argc, char *argv[]) {
   caf::container c;
   c.load(argv[1]);
   c.show_item(c.getItem(argv[3]));
+  return true;
+}
+
+bool cmd_copy(int argc, char *argv[]) {
+  if(argc < 4) {
+    std::cout<<"Command 'copy' needs more arguments!\n";
+    return false;
+  }
+  caf::container c;
+  c.load(argv[1]);
+  c.write(argv[3]);
+
   return true;
 }

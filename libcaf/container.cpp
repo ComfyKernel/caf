@@ -167,8 +167,9 @@ void writeData(std::ofstream& stream, T data, uint64_t& ptr) {
 }
 
 void writeString(std::ofstream& stream, const std::string& data, uint64_t& ptr) {
-  stream.write(data.c_str(), data.length() + 1);
-  ptr += data.length() + 1;
+  stream.write(data.c_str(), data.length());
+  writeData<uint8_t>(stream, 0, ptr);
+  ptr += data.length();
 }
 
 bool caf::container::write(const std::string& file) {
@@ -180,7 +181,7 @@ bool caf::container::write(const std::string& file) {
     return false;
   }
 
-  uint64_t ptr;
+  uint64_t ptr = 0;
 
   writeData<char>(fi, 'C', ptr);
   writeData<char>(fi, 'A', ptr);
@@ -196,6 +197,8 @@ bool caf::container::write(const std::string& file) {
     caf::lumpitem li = items[i];
     if(i < items.size() - 1) {
       li.flags.a |= 0b10000000;
+    } else {
+      li.flags.a &= 0b01111111;
     }
     writeData<uint8_t> (fi, li.flags.a,  ptr);
     writeData<uint8_t> (fi, li.flags.b,  ptr);
@@ -208,6 +211,7 @@ bool caf::container::write(const std::string& file) {
     writeString(fi, li.path, ptr);
     writeString(fi, li.type, ptr);
     fi.write(li.data, li.size);
+    ptr += li.size;
   }
 
   fi.close();
