@@ -1,7 +1,9 @@
 #include <caf/container.hpp>
+
 #include <iostream>
 #include <fstream>
 #include <cstring>
+#include <initializer_list>
 
 caf::lumpitem _container_emptyitem;
 
@@ -160,16 +162,20 @@ bool caf::container::load(const std::string& fname) {
 }
 
 template<typename T>
-void writeData(std::ofstream& stream, T data, uint64_t& ptr) {
-  T v = data;
-  stream.write((const char*)&v, sizeof(T));
-  ptr += sizeof(T);
+void writeData(std::ofstream& stream, uint64_t& ptr, const std::initializer_list<T> il_data) {
+  for(const auto& data : il_data) {
+    T v = data;
+    stream.write((const char*)&v, sizeof(T));
+    ptr += sizeof(T);
+  }
 }
 
-void writeString(std::ofstream& stream, const std::string& data, uint64_t& ptr) {
-  stream.write(data.c_str(), data.length());
-  writeData<uint8_t>(stream, 0, ptr);
-  ptr += data.length();
+void writeString(std::ofstream& stream, uint64_t& ptr, const std::initializer_list<std::string> il_data) {
+  for(const auto& data : il_data) {
+    stream.write(data.c_str(), data.length());
+    writeData<uint8_t>(stream, ptr, {0});
+    ptr += data.length();
+  }
 }
 
 bool caf::container::write(const std::string& file) {
@@ -183,33 +189,38 @@ bool caf::container::write(const std::string& file) {
 
   uint64_t ptr = 0;
 
-  writeData<char>(fi, 'C', ptr);
-  writeData<char>(fi, 'A', ptr);
-  writeData<char>(fi, 'F', ptr);
+  writeData<char>(fi, ptr, {'C', 'A', 'F'});
 
-  writeData<uint16_t>(fi, version.major,           ptr);
-  writeData<uint16_t>(fi, version.minor,           ptr);
-  writeData<uint32_t>(fi, version.revision,        ptr);
-  writeData<uint64_t>(fi, ptr + root.length() + 9, ptr);
-  writeString(fi, root, ptr);
+  writeData<uint16_t>(fi, ptr, {version.major, version.minor});
+  writeData<uint32_t>(fi, ptr, {version.revision});
+  writeData<uint64_t>(fi, ptr, {ptr + root.length() + 9});
+  writeString(fi, ptr, {root});
 
   for(unsigned i = 0; i < items.size(); ++i) {
     caf::lumpitem li = items[i];
-    if(i < items.size() - 1) {
+
+    if(i < items.size() - 1) { // If the next item exists, set the flag, otherwise, remove it
       li.flags.a |= 0b10000000;
     } else {
       li.flags.a &= 0b01111111;
     }
-    writeData<uint8_t> (fi, li.flags.a,  ptr);
-    writeData<uint8_t> (fi, li.flags.b,  ptr);
-    writeData<uint64_t>(fi, li.size,     ptr);
-    writeData<uint32_t>(fi, li.revision, ptr);
+
+    if(li.size <= 0) {
+      li.flags.a |= 0b01000000;
+    } else {
+      li.flags.a &= 0b10111111;
+    }
+
+    writeData<uint8_t> (fi, ptr, {li.flags.a, li.flags.b});
+    writeData<uint64_t>(fi, ptr, {li.size});
+    writeData<uint32_t>(fi, ptr, {li.revision});
+
     uint64_t ptr_l = li.name.length() + li.path.length() + li.type.length() + 3;
-    writeData<uint64_t>(fi, ptr + ptr_l + 16,          ptr);
-    writeData<uint64_t>(fi, ptr + ptr_l + 8 + li.size, ptr);
-    writeString(fi, li.name, ptr);
-    writeString(fi, li.path, ptr);
-    writeString(fi, li.type, ptr);
+
+    writeData<uint64_t>(fi, ptr, {ptr + ptr_l + 16,
+                                  ptr + ptr_l + 8 + li.size});
+    writeString(fi, ptr, {li.name, li.path, li.type});
+
     fi.write(li.data, li.size);
     ptr += li.size;
   }
@@ -219,38 +230,38 @@ bool caf::container::write(const std::string& file) {
 }
 
 void caf::container::dump_tree() const {
-  std::cout<<"┌────────────────────────────────────────────────────\n";
-  std::cout<<"│\n";
-  std::cout<<"├╴ CAF Version    : ["<<version.major<<", "<<version.minor<<"]\n";
-  std::cout<<"├╴ Asset Revision : "<<version.revision<<"\n";
-  std::cout<<"├╴ Asset path     : '"<<root<<"'\n";
-  std::cout<<"│\n";
+  std::cout<<"┌────────────────────────────────────────────────────\n"
+           <<"│\n"
+           <<"├╴ CAF Version    : "<<version.major<<"."<<version.minor<<"\n"
+           <<"├╴ Asset Revision : "<<version.revision<<"\n"
+           <<"├╴ Asset path     : '"<<root<<"'\n"
+           <<"│\n";
 
   for(const auto& li : items) {
-    std::cout<<"├╼ Lump ╾┬╴ '"<<li.path<<li.name<<"'\n";
-    std::cout<<"│        ├╴ Name     : '"<<li.name<<"'\n";
-    std::cout<<"│        ├╴ Path     : '"<<li.path<<"'\n";
-    std::cout<<"│        ├╴ Type     : '"<<li.type<<"'\n";
-    std::cout<<"│        ├╴ Revision : '"<<li.revision<<"'\n";
-    std::cout<<"│        └╼ Data ╾┬╴ Pointer : "<<(void*)li.data<<"\n";
-    std::cout<<"│                 └╴ Size    : "<<li.size<<"\n";
-    std::cout<<"│\n";
+    std::cout<<"├╼ Lump ╾┬╴ '"<<li.path<<li.name<<"'\n"
+             <<"│        ├╴ Name     : '"<<li.name<<"'\n"
+             <<"│        ├╴ Path     : '"<<li.path<<"'\n"
+             <<"│        ├╴ Type     : '"<<li.type<<"'\n"
+             <<"│        ├╴ Revision : '"<<li.revision<<"'\n"
+             <<"│        └╼ Data ╾┬╴ Pointer : "<<(void*)li.data<<"\n"
+             <<"│                 └╴ Size    : "<<li.size<<"\n"
+             <<"│\n";
   }
 
   std::cout<<"└────────────────────────────────────────────────────\n";
 }
 
 void caf::container::dump_item(const caf::lumpitem& li) const {
-  std::cout<<"┌──────────────────────────────────────────────\n";
-  std::cout<<"│\n";
-  std::cout<<"├╴ Name     : '"<<li.name<<"'\n";
-  std::cout<<"├╴ Path     : '"<<li.path<<"'\n";
-  std::cout<<"├╴ Type     : '"<<li.type<<"'\n";
-  std::cout<<"├╴ Revision : '"<<li.revision<<"'\n";
-  std::cout<<"├╴ Data ╾┬╴ Pointer : '"<<(void*)li.data<<"'\n";
-  std::cout<<"│        └╼ Size    : '"<<li.size<<"'\n";
-  std::cout<<"│\n";
-  std::cout<<"└──────────────────────────────────────────────\n";
+  std::cout<<"┌──────────────────────────────────────────────\n"
+           <<"│\n"
+           <<"├╴ Name     : '"<<li.name<<"'\n"
+           <<"├╴ Path     : '"<<li.path<<"'\n"
+           <<"├╴ Type     : '"<<li.type<<"'\n"
+           <<"├╴ Revision : '"<<li.revision<<"'\n"
+           <<"├╴ Data ╾┬╴ Pointer : '"<<(void*)li.data<<"'\n"
+           <<"│        └╼ Size    : '"<<li.size<<"'\n"
+           <<"│\n"
+           <<"└──────────────────────────────────────────────\n";
 }
 
 void caf::container::show_item(const caf::lumpitem& li) const {
@@ -267,5 +278,5 @@ void caf::container::show_item(const caf::lumpitem& li) const {
     return;
   }
 
-  std::cout<<"[CAF] Cannot show lump, type '"<<li.type<<"' Unsupported\n";
+  std::cout<<"[CAF] Cannot show lump, type '"<<li.type<<"' is unsupported\n";
 }
